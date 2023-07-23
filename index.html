@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Proverb App</title>
+  <style>
+    /* Reset some default styles to ensure consistency */
+    body,
+    h1,
+    p,
+    input,
+    button {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background-color: #f8f8f8;
+      color: #333;
+    }
+
+    h1 {
+      text-align: center;
+      padding: 20px 0;
+    }
+
+    #proverb-container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #fff;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      border-radius: 6px;
+    }
+
+    .proverb {
+      display: flex;
+      align-items: center;
+    }
+
+    #proverb-image {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      margin-right: 20px;
+      object-fit: cover;
+    }
+
+    #proverb-text {
+      flex: 1;
+    }
+
+    #proverb-likes {
+      margin-right: 10px;
+    }
+
+    #like-button {
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    #like-button:hover {
+      background-color: #0056b3;
+    }
+
+    #add-proverb-container {
+      max-width: 600px;
+      margin: 20px auto;
+      background-color: #fff;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      border-radius: 6px;
+    }
+
+    #proverb-input {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    #add-proverb-button {
+      background-color: #4caf50;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    #add-proverb-button:hover {
+      background-color: #45a049;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+</head>
+
+<body>
+
+  <h1>Proverb App</h1>
+  <div id="proverb-container">
+    <div class="proverb">
+      <img id="proverb-image" src="" alt="Proverb Image">
+      <p id="proverb-text"></p>
+      <label>Likes: </label>
+      <span id="proverb-likes">0</span>
+      <button id="like-button">Like</button>
+    </div>
+  </div>
+  <div id="add-proverb-container">
+    <input type="text" id="proverb-input" placeholder="Enter a new proverb">
+    <button id="add-proverb-button">Add Proverb</button>
+  </div>
+
+
+  <script>
+    // Function to fetch a random proverb with associated image and update the UI
+    function fetchRandomProverb() {
+      console.log("tehila html before");
+      axios.get('/proverbs/random')
+        .then(response => {
+          console.log("tehila html");
+          const { proverb, image, likes } = response.data;
+          document.getElementById('proverb-image').src = image;
+          document.getElementById('proverb-text').textContent = proverb;
+          document.getElementById('proverb-likes').textContent = `${likes}`;
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    }
+
+    function increaseLikes(proverbId) {
+      console.log("increaseLikes proverbId -> ", proverbId);
+      axios.put(`/proverbs/${encodeURIComponent(proverbId)}/likes`, { likes: 1 })
+        .then(response => {
+          console.log('response => ', response);
+          // Update the UI with the new number of likes
+          const likes = response.data.likes;
+          // Step 1: Get the content value of the <p> element
+          const proverbElement = document.getElementById("proverb-likes");
+          const contentValue = proverbElement.innerText;
+          // Step 2: Convert the content value to an integer
+          const intValue = parseInt(contentValue, 10);
+
+          // Step 3: Add one to the integer value
+          const newValue = intValue + 1;
+
+          // Step 4: Update the content of the <p> element with the new value
+          proverbElement.innerText = newValue.toString();
+
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    }
+
+
+
+
+
+
+    // Function to add a new proverb
+    function addProverb() {
+      const proverbInput = document.getElementById('proverb-input');
+
+      const proverb = proverbInput.value;
+      console.log("pro -> ", proverb);
+      axios.post('/proverbs', { proverb })
+        .then(response => {
+          // Clear the input field and fetch a new random proverb
+          proverbInput.value = '';
+          fetchRandomProverb();
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    }
+
+    // Fetch a random proverb on page load
+    fetchRandomProverb();
+
+    // Fetch a random proverb every 10 seconds
+    setInterval(fetchRandomProverb, 10000);
+
+    // Attach event listeners to the buttons
+    document.getElementById('like-button').addEventListener('click', () => {
+      const proverbId = document.getElementById('proverb-text').textContent;
+      increaseLikes(proverbId);
+    });
+    document.getElementById('add-proverb-button').addEventListener('click', addProverb);
+  </script>
+</body>
+
+</html>
